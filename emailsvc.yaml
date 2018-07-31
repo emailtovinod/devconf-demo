@@ -61,9 +61,9 @@ items:
           env:
           - name: host
             valueFrom:
-              configMapKeyRef:
-                key: MYSQL_HOST
-                name: mysql-service
+              secretKeyRef:
+                key: MYSQL_SERVICE_HOST
+                name: mysql-secret
           - name: database
             valueFrom:
               secretKeyRef:

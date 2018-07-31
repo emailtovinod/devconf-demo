@@ -44,9 +44,6 @@ oc env dc/mysql --from=secret/mysql-secret
 oc create configmap mail-config --from-literal=EMAIL_APPLICATION_DOMAIN="http://emailsvc:8080"
 ----
 ----
-oc create configmap mysql-service --from-literal=MYSQL_SERVICE_HOST=mysql
-----
-----
 oc create secret generic email-secret --from-literal=GMAIL_USERNAME=devconfocp@gmail.com --from-literal=GMAIL_PASSWORD=XirZVyDjVvodKnMXDGwsw4JJsrzKpTby
 ----
 
@@ -67,6 +64,8 @@ oc create configmap myquery --from-file=my.sql
 
 ** **Deploy the `Email App` from the `DeploymentConfiguration` manifest**
 
+****You may view the deployment configuration manifest file `emailsvc.yaml` and find the use of the `secret` object `mysql-secret` in the configuration. Shairing within the same `namespace` is an  important feature of  ConfigMap and Secret` objects***
+
 ----
 oc create -f emailsvc.yaml
 ----
@@ -78,6 +77,14 @@ oc get po
 ----
 
 ==  Create the Project in OpenShift to deploy the TwitterAPI and User Registration  Services
+
+** ***Set the `user` specific variables***
+
+----
+user=<user-id>
+----
+
+** ***Create the Project***
 
 ----
 oc new-project $user-msservices-demo
@@ -126,7 +133,7 @@ oc create secret generic userregsvc-db --from-literal=MONGODB_USER=mongouser --f
 ----
 ** Create the Configuration Parameters  Required for the `User Registration Service` app  as a `ConfigMap` object
 ----
-oc create configmap mail-config --from-literal=EMAIL_APPLICATION_DOMAIN="http://emailsvc.msinfra-demo.svc.cluster.local:8080"
+oc create configmap mail-config --from-literal=EMAIL_APPLICATION_DOMAIN="http://emailsvc.$user-msinfra-demo.svc.cluster.local:8080"
 ----
 
 ** ***Deploy the User Registrion Service App***
@@ -159,12 +166,20 @@ oc get po
 
 == Create the Project in OpenShift to deploy the `User Registration UI` App
 
+** ***Set the `user` specific variables***
+
+----
+user=<user-id>
+----
+
+** ***Create the Project***
+
 ----
 oc new-project $user-msclient-demo
 ----
 ** Create the Configuration Parameters Required for the `User Registration UI` app  as a `ConfigMap` object
 ----
-oc create configmap userreg-config --from-literal=USER_REG_SVC="http://userregsvc-msservices-demo.svc.cluster.local" --from-literal=TWITTER_FEED_SVC="http://twitter-api-msservices-demo.svc.cluster.local"
+oc create configmap userreg-config --from-literal=USER_REG_SVC="http://userregsvc-$user-msservices-demo.svc.cluster.local" --from-literal=TWITTER_FEED_SVC="http://twitter-api-$user-msservices-demo.svc.cluster.local"
 ----
 
 ** ***Deploy the `user registration UI` App***
