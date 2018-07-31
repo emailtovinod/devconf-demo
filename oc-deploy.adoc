@@ -27,7 +27,7 @@ oc new-project $user-msinfra-demo
 ----
 oc create secret generic mysql-secret --from-literal=MYSQL_DATABASE=microservices --from-literal=MYSQL_PASSWORD=password --from-literal=MYSQL_USER=app_user  --from-literal=MYSQL_ROOT_PASSWORD=password --from-literal=MYSQL_SERVICE_HOST=MYSQL
 ----
-** Deploy the MySQL App 
+** ***Deploy the MySQL App*** 
 ----
 oc new-app --name=mysql -lapp=mysql -lmicroservice=emailsvc --docker-image=docker.io/vinoalex/mysql-56-rhel
 ----
@@ -50,7 +50,10 @@ oc create configmap mysql-service --from-literal=MYSQL_SERVICE_HOST=mysql
 oc create secret generic email-secret --from-literal=GMAIL_USERNAME=devconfocp@gmail.com --from-literal=GMAIL_PASSWORD=XirZVyDjVvodKnMXDGwsw4JJsrzKpTby
 ----
 
-** Create the `Configuration` Parameters required for the `init` container of the `Email Service` deployment. The `init` container will use ths configuration (sql commands in the file)to create the  `emails` tables in the 'microservices` database created in the MySQL app. 
+** Create the `Configuration` Parameters (sql commands to create the `emails` table)as a ConfigMap  required for the `init` container of the `Email Service` deployment.
+
+
+*** The `init` container will use ths configuration (sql commands in the file)to create the  `emails` tables in the 'microservices` database created in the MySQL app. 
 
 ** The init container of the `Email Service PoD` will mount the `myquery` ConfigMap as a `volume` with name `sql` on the path `/opt/sql`.
 
@@ -60,13 +63,21 @@ oc create secret generic email-secret --from-literal=GMAIL_USERNAME=devconfocp@g
 oc create configmap query-config --from-file=my.sql
 ----
 
-== Deploy the `Email App` from the `DeploymentConfiguration` manifest
+***Please note;Here the ConfigMap is created using the  `--from-file` method`
+
+** **Deploy the `Email App` from the `DeploymentConfiguration` manifest**
 
 ----
 oc create -f emailsvc.yaml
 ----
 
-** Create the Project in OpenShift to deploy the TwitterAPI and User Registration  Services
+** Verify the status of the  PoDs of the Project
+
+----
+oc get po
+----
+
+==  Create the Project in OpenShift to deploy the TwitterAPI and User Registration  Services
 
 ----
 oc new-project $user-msservices-demo
@@ -76,6 +87,7 @@ oc new-project $user-msservices-demo
 ----
 oc create secret generic mongo-secret --from-literal MONGODB_ADMIN_PASSWORD=password --from-literal MONGODB_DATABASE=userdb  --from-literal MONGODB_PASSWORD=password --from-literal MONGODB_USER=mongouser
 ----
+** ***Deploy the Mongodb` App***
 ----
 oc new-app --name mongodb -lmicroservice=userregsvc --docker-image=docker.io/vinoalex/mongodb
 ----
@@ -88,7 +100,7 @@ oc env dc/mongodb --from=secret/mongo-secret
 ----
 oc create secret generic twitter-secret  --from-literal=TWITTER_CONSUMER_KEY=nothing  --from-literal=TWITTER_CONSUMER_SERVICE=nothing  --from-literal=TWITTER_OAUTH_ACCESS_TOKEN=nothing  --from-literal=TWITTER_OAUTH_ACCESS_TOKEN_SECRET=nothing
 ----
-** Deploy the twitter-api App 
+** ***Deploy the twitter-api App*** 
 ----
 oc new-app --name=twitter-api -lmicroservice=twittersvc --docker-image=docker.io/vinoalex/twitter-api
 ----
@@ -117,7 +129,7 @@ oc create secret generic userregsvc-db --from-literal=MONGODB_USER=mongouser --f
 oc create configmap mail-config --from-literal=EMAIL_APPLICATION_DOMAIN="http://emailsvc.msinfra-demo.svc.cluster.local:8080"
 ----
 
-** Deploy the twitter-api App
+** ***Deploy the User Registrion Service App***
 ----
 oc new-app --name=userregsvc -lmicroservice=userregsvc --docker-image=docker.io/vinoalex/userregsvc
 ----
@@ -138,6 +150,13 @@ oc expose svc/userregsvc
 oc get route
 ----
 
+** Verify the status of the  PoDs of the Project
+
+----
+oc get po
+----
+
+
 == Create the Project in OpenShift to deploy the `User Registration UI` App
 
 ----
@@ -145,10 +164,10 @@ oc new-project $user-msclient-demo
 ----
 ** Create the Configuration Parameters Required for the `User Registration UI` app  as a `ConfigMap` object
 ----
-oc create configmap userreg-config --from-literal=USER_REG_SVC="http://userregsvc-msservices-demo.apps.7f86.example.opentlc.com" --from-literal=TWITTER_FEED_SVC="http://twitter-api-msservices-demo.apps.7f86.example.opentlc.com"
+oc create configmap userreg-config --from-literal=USER_REG_SVC="http://userregsvc-msservices-demo.svc.cluster.local" --from-literal=TWITTER_FEED_SVC="http://twitter-api-msservices-demo.svc.cluster.local"
 ----
 
-** Deploy the `user registration UI` App
+** ***Deploy the `user registration UI` App***
 ----
 oc new-app --name='userreg' -l microservice=userreg --docker-image=docker.io/vinoalex/usereg
 ----
