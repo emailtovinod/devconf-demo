@@ -9,19 +9,19 @@
 == Configuration and Credential Management Patterns in Distributed Application
 
 
-== Set the `user` specific variables
+** ***Set the `user` specific variables***
 
 ----
 user=<user-id>
 ----
 
-** Create the Project in OpenShift to deploy the Email service **
+==  Create the Project in OpenShift to deploy the Email Service
 
 ----
 oc new-project $user-msinfra-demo
 ----
 
-== Deploy and Configure the `MySQL` backend for the `Email` Service
+**  ***Deploy and Configure the `MySQL` backend for the `Email` Service***
 
 ** Create the Credential Required for the MySQL DB as a `Secret` object 
 ----
