@@ -56,17 +56,13 @@ items:
       spec:
         initContainers:
         - name: initmysqlschema
-          image: docker.io/imega/mysql-client
-          env: 
-          - name: QUERY
-            valueFrom:
-              configMapKeyRef:
-                key: query
-                name: query
+          image: docker.io/vinoalex/mysqlclient:v08
+          command: ["/bin/sh", "-c", "mysql -u$user -p$password -h$host < /opt/sql/my.sql"]
+          env:
           - name: host
             valueFrom:
               configMapKeyRef:
-                key: MYSQL_SERVICE_HOST
+                key: MYSQL_HOST
                 name: mysql-service
           - name: database
             valueFrom:
@@ -83,11 +79,13 @@ items:
               secretKeyRef:
                 key: MYSQL_USER
                 name: mysql-secret
-          - name: execute
-            valueFrom:
-              configMapKeyRef:
-                key: query
-                name: query
+            volumeMounts:
+            - name: sql
+              mountPath: /opt/sql
+        volumes:
+          - name: sql
+            configMap:
+               name: myquery
         containers:
         - image: docker.io/vinoalex/emailsvc
           name: emailsvc
