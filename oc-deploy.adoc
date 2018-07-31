@@ -1,0 +1,177 @@
+:hardbreaks:
+:scrollbar:
+:data-uri:
+:toc3:
+:showdetailed:
+:linkattrs:
+:noaudio:
+
+== Configuration and Credential Management Patterns in Distributed Application
+
+
+== Set the `user` specific variables
+
+----
+user=<user-id>
+----
+
+** Create the Project in OpenShift to deploy the Email service **
+
+----
+oc new-project $user-msinfra-demo
+----
+
+== Deploy and Configure the `MySQL` backend for the `Email` Service
+
+** Create the Credential Required for the MySQL DB as a `Secret` object 
+----
+oc create secret generic mysql-secret --from-literal=MYSQL_DATABASE=microservices --from-literal=MYSQL_PASSWORD=password --from-literal=MYSQL_USER=app_user  --from-literal=MYSQL_ROOT_PASSWORD=password --from-literal=MYSQL_SERVICE_HOST=MYSQL
+----
+** Deploy the MySQL App 
+----
+oc new-app --name=mysql -lapp=mysql -lmicroservice=emailsvc --docker-image=docker.io/vinoalex/mysql-56-rhel
+----
+
+** Provide the Credentails defined in the `Secret` (mysql-secret) to the MySQL Pods 
+----
+oc env dc/mysql --from=secret/mysql-secret
+----
+
+== Deploy and Configure the Email Service App
+
+** Create the `Configuration` Parameters required for the `Email` App [ Using `--from-literal` method ]
+----
+oc create configmap mail-config --from-literal=EMAIL_APPLICATION_DOMAIN="http://emailsvc:8080"
+----
+----
+oc create configmap mysql-service --from-literal=MYSQL_SERVICE_HOST=mysql
+----
+----
+oc create secret generic email-secret --from-literal=GMAIL_USERNAME=devconfocp@gmail.com --from-literal=GMAIL_PASSWORD=XirZVyDjVvodKnMXDGwsw4JJsrzKpTby
+----
+
+** Create the `Configuration` Parameters required for the `init` container of the `Email Service` deployment to create the `emails` tables in the database. 
+
+** The init container of the `Email Service PoD` will mount the `query-config` drive and initiate the `mysql command` to the `MySQL` app to create the `emails` tables.
+
+*** The `mysql` command is defined to consume its `args` from the `query-config` drive mount on `/opt/sql`
+
+----
+oc create configmap query-config --from-file=my.sql
+----
+
+== Deploy the `Email App` from the `DeploymentConfiguration` manifest
+
+----
+oc create -f emailsvc.yaml
+----
+
+** Create the Project in OpenShift to deploy the TwitterAPI and User Registration  Services
+
+----
+oc new-project $user-msservices-demo
+----
+
+** Create the Credential Required for the mongodb as a `Secret` object
+----
+oc create secret generic mongo-secret --from-literal MONGODB_ADMIN_PASSWORD=password --from-literal MONGODB_DATABASE=userdb  --from-literal MONGODB_PASSWORD=password --from-literal MONGODB_USER=mongouser
+----
+----
+oc new-app --name mongodb -lmicroservice=userregsvc --docker-image=docker.io/vinoalex/mongodb
+----
+** Provide the Credentails defined in the `Secret` (mongo-secret)  to the `mongodb` Pods as Environment variables
+----
+oc env dc/mongodb --from=secret/mongo-secret
+----
+
+** Create the Credential Required for the twitter-api app  as a `Secret` object
+----
+oc create secret generic twitter-secret  --from-literal=TWITTER_CONSUMER_KEY=nothing  --from-literal=TWITTER_CONSUMER_SERVICE=nothing  --from-literal=TWITTER_OAUTH_ACCESS_TOKEN=nothing  --from-literal=TWITTER_OAUTH_ACCESS_TOKEN_SECRET=nothing
+----
+** Deploy the twitter-api App 
+----
+oc new-app --name=twitter-api -lmicroservice=twittersvc --docker-image=docker.io/vinoalex/twitter-api
+----
+
+** Provide the Credentails defined in the `Secret` (twitter-secret)  to the `twitter-api` Pods as Environment variables
+----
+oc env dc/twitter-api --from=secret/twitter-secret
+----
+
+** Create the external `route` to access the `twitter-api` App
+
+----
+oc expose svc/twitter-api
+----
+
+** Varify the `route` of the  twitter-api app
+----
+oc get route
+----
+** Create the Credential Required for the `User Registration Service` app  as a `Secret` object
+----
+oc create secret generic userregsvc-db --from-literal=MONGODB_USER=mongouser --from-literal=MONGODB_PASSWORD=password --from-literal MONGODB_DATABASE=userdb --from-literal=DATABASE_SERVICE_NAME=mongodb
+----
+** Create the Configuration Parameters  Required for the `User Registration Service` app  as a `ConfigMap` object
+----
+oc create configmap mail-config --from-literal=EMAIL_APPLICATION_DOMAIN="http://emailsvc.msinfra-demo.svc.cluster.local:8080"
+----
+
+** Deploy the twitter-api App
+----
+oc new-app --name=userregsvc -lmicroservice=userregsvc --docker-image=docker.io/vinoalex/userregsvc
+----
+** Provide the Credentails defined in the `Secret` (userregsvc-db)  to the `userregsvc` Pods as Environment variables
+----
+oc env dc/userregsvc --from=configmap/mail-config
+----
+** Provide the Credentails defined in the `Secret` (userregsvc-db)  to the `userregsvc` Pods as Environment variables
+----
+oc env dc/userregsvc --from=secret/userregsvc-db
+----
+** Create the external `route` to access the `userregsvc` App
+----
+oc expose svc/userregsvc
+----
+** Varify the `route` of the  userregsvc app
+----
+oc get route
+----
+
+== Create the Project in OpenShift to deploy the `User Registration UI` App
+
+----
+oc new-project $user-msclient-demo
+----
+** Create the Configuration Parameters Required for the `User Registration UI` app  as a `ConfigMap` object
+----
+oc create configmap userreg-config --from-literal=USER_REG_SVC="http://userregsvc-msservices-demo.apps.7f86.example.opentlc.com" --from-literal=TWITTER_FEED_SVC="http://twitter-api-msservices-demo.apps.7f86.example.opentlc.com"
+----
+
+** Deploy the `user registration UI` App
+----
+oc new-app --name='userreg' -l microservice=userreg --docker-image=docker.io/vinoalex/usereg
+----
+** Provide the Credentails defined in the `Secret` (userreg-config)  to the `userreg` Pods as Environment variables
+----
+oc env dc/userreg --from=configmap/userreg-config
+----
+
+** Create the external `route` to access the `userregsvc` App
+----
+oc expose svc/userreg
+----
+
+** Varify the `route` of the  userregsvc app
+----
+oc get route 
+----
+** Access the `route` url from the Web Browser
+
+== Scale the `User Registration UI` App (Increase the PoD Instances)
+
+----
+oc scale dc/userreg --replicas=4
+----
+** Create a new user registration and verify the App function
+
