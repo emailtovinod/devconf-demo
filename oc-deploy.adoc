@@ -63,7 +63,7 @@ oc create secret generic email-secret --from-literal=GMAIL_USERNAME=devconfocp@g
 oc create configmap query-config --from-file=my.sql
 ----
 
-***Please note;Here the ConfigMap is created using the  `--from-file` method`
+****Please note;Here the ConfigMap is created using the  `--from-file` method***
 
 ** **Deploy the `Email App` from the `DeploymentConfiguration` manifest**
 
