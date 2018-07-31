@@ -1,0 +1,132 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: emailsvc
+      microservice: emailsvc
+    name: emailsvc
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: emailsvc:latest
+    postCommit: {}
+    resources: {}
+    source:
+      contextDir: python-email-api
+      git:
+        uri: https://github.com/newgoliath/microservices-on-openshift.git
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: python:2.7
+          namespace: openshift
+      type: Source
+    triggers:
+    - github:
+        secret: fT8ujUdPYgwitv-7P63m
+      type: GitHub
+    - generic:
+        secret: jQp5tTQiO7iZvL7TahY5
+      type: Generic
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: emailsvc
+      microservice: emailsvc
+    name: emailsvc
+  spec:
+    replicas: 1
+    selector:
+      app: emailsvc
+      deploymentconfig: emailsvc
+      microservice: emailsvc
+    strategy:
+      resources: {}
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftNewApp
+        creationTimestamp: null
+        labels:
+          app: emailsvc
+          deploymentconfig: emailsvc
+          microservice: emailsvc
+      spec:
+        containers:
+        - env:
+          - name: EMAIL_APPLICATION_DOMAIN
+            value: http://emailsvc:8080
+          - name: MYSQL_DATABASE
+            value: microservices
+          - name: MYSQL_PASSWORD
+            value: password
+          - name: MYSQL_SERVICE_HOST
+            value: MYSQL
+          - name: MYSQL_USER
+            value: app_user
+          image: emailsvc:latest
+          name: emailsvc
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - emailsvc
+        from:
+          kind: ImageStreamTag
+          name: emailsvc:latest
+      type: ImageChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    labels:
+      app: emailsvc
+      microservice: emailsvc
+    name: emailsvc
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: emailsvc
+      deploymentconfig: emailsvc
+      microservice: emailsvc
+  status:
+    loadBalancer: {}
+kind: List
+metadata: {}
