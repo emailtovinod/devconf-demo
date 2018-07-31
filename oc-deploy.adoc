@@ -50,11 +50,11 @@ oc create configmap mysql-service --from-literal=MYSQL_SERVICE_HOST=mysql
 oc create secret generic email-secret --from-literal=GMAIL_USERNAME=devconfocp@gmail.com --from-literal=GMAIL_PASSWORD=XirZVyDjVvodKnMXDGwsw4JJsrzKpTby
 ----
 
-** Create the `Configuration` Parameters required for the `init` container of the `Email Service` deployment to create the `emails` tables in the database. 
+** Create the `Configuration` Parameters required for the `init` container of the `Email Service` deployment. The `init` container will use ths configuration (sql commands in the file)to create the  `emails` tables in the 'microservices` database created in the MySQL app. 
 
-** The init container of the `Email Service PoD` will mount the `query-config` drive and initiate the `mysql command` to the `MySQL` app to create the `emails` tables.
+** The init container of the `Email Service PoD` will mount the `myquery` ConfigMap as a `volume` with name `sql` on the path `/opt/sql`.
 
-*** The `mysql` command is defined to consume its `args` from the `query-config` drive mount on `/opt/sql`
+*** The `mysql` command is defined to consume its `args` from the `myquery` drive mount on `/opt/sql`
 
 ----
 oc create configmap query-config --from-file=my.sql
