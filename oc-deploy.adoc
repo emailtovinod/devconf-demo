@@ -6,6 +6,18 @@
 :linkattrs:
 :noaudio:
 
+== Clone the Git Repository to the Client Working Directory
+
+----
+git clone https://github.com/emailtovinod/devconf-demo.git
+----
+
+** **Switch the Working Directory**
+
+----
+cd devconf-demo
+----
+
 == Configuration and Credential Management Patterns in Distributed Application
 
 
