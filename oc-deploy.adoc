@@ -181,6 +181,9 @@ oc new-project $user-msclient-demo
 ----
 oc create configmap userreg-config --from-literal=USER_REG_SVC="http://userregsvc.$user-msservices-demo.svc.cluster.local:8080" --from-literal=TWITTER_FEED_SVC="http://twitter-api.$user-msservices-demo.svc.cluster.local:8080"
 ----
+----
+oc create configmap userreg-config --from-literal=USER_REG_SVC="http://`oc get route -lapp=userregsvc -n $user-msservices-demo -o=custom-columns=:.spec.host| sed "1 d"`" --from-literal=TWITTER_FEED_SVC="http://`oc get route -lapp=twitter-api -n $user-msservices-demo -o=custom-columns=:.spec.host | sed "1 d"`"
+----
 
 ** ***Deploy the `user registration UI` App***
 ----
