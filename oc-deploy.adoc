@@ -214,10 +214,26 @@ oc get route
 ----
 ** Access the `route` url from the Web Browser
 
+** Verify the status of the  PoDs of the Project
+
+----
+oc get po
+----
+
+
 == Scale the `User Registration UI` App (Increase the PoD Instances)
 
 ----
 oc scale dc/userreg --replicas=4
 ----
+
+
+** Verify New Replicas of the PoDs of the Project
+
+----
+oc get po
+----
+
+
 ** Create a new user registration and verify the App function
 
